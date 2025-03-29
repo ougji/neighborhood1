@@ -201,15 +201,16 @@ st.markdown(
 url = "https://api.openai.com/v1/chat/completions"
 headers = {
     "Content-Type": "application/json",
-    "Authorization": "Bearer "
+    "Authorization": "Bearer"
 }
 data = {
     "model": "gpt-4o-mini", 
     "messages": [
-        {"role": "system", "content": "You are assistant that helps users with neighborhood reviews.Answer the questions and provide information based on the reviews in the database."},
+       {"role": "system", "content": " you are not allow respond to messages that are not related to the directive like 'what is the weather today?'"},
+                 
     ],
     "max_tokens": 6000,
-    "temperature": 0.7,
+    "temperature": 1,
     "top_p": 1.0,
     "frequency_penalty": 0.0,
     "presence_penalty": 0.0
@@ -235,6 +236,7 @@ with st.sidebar:
         set_page("manage")
     if st.button("AI Assistant", key="ai"):
         set_page("ai")
+
 
 # ======== MAIN APP CODE ========
 
@@ -489,8 +491,8 @@ elif st.session_state.page == "ai":
 
     if "messages" not in st.session_state or "reviews_context_added" not in st.session_state:
         st.session_state["messages"] = [
-            {"role": "system", "content": f"You're a helpful assistant providing detailed neighborhood insights based on recent reviews. Answer user questions clearly, offer comparisons if relevant, and suggest additional factors they may want to consider. Here’s the latest review data: {reviews_context}"}
-        ]
+                {"role": "system", "content": "A concise and objective review of a neighborhood or building, based strictly on the provided information. you are not allow respond to messages that are not related to the directive."},
+                ]
         st.session_state["reviews_context_added"] = True
 
     if prompt := st.chat_input("Ask the AI about neighborhood reviews..."):
@@ -498,9 +500,10 @@ elif st.session_state.page == "ai":
             review_directive = prompt[len("/create"):].strip()
             messages = [
                 {"role": "system", "content": "A concise and objective review of a neighborhood or building, based strictly on the provided information. If reviews from other maps are available, summarize key trends and present a balanced opinion. Do not add assumptions or exaggerations, and maintain a neutral tone. " + review_directive},
-                {"role": "user", "content": "Generate a review based on the above directive."}
+                {"role": "system", "content": "A concise and objective review of a neighborhood or building, based strictly on the provided information. you are not allow respond to messages that are not related to the directive like 'what is the weather today?'"},
+                
             ]
-            data["messages"] = messages
+            data["messages"] = st.session_state["messages"]
             response = requests.post(url, headers=headers, data=json.dumps(data))
             if response.status_code == 200:
                 auto_review = response.json()["choices"][0]["message"]["content"]
@@ -523,3 +526,4 @@ elif st.session_state.page == "ai":
         if message["role"] != "system":
             with st.chat_message(message["role"]):
                 st.write(message["content"])
+
