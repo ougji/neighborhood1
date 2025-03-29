@@ -48,13 +48,11 @@ Welcome to the **Neighborhood Reviews App**! This application allows users to ex
   - `geopy`
 
 ### Installation
-1. Clone the repository:
+1. Clone the repository or Download ZIP file:
    ```bash
-   git clone https://github.com/your-repo/neighborhood-reviews-app.git
-   cd neighborhood-reviews-app
+   git clone https://github.com/ougji/neighborhood1.git
+   cd neighborhood1
    ```
-   or
-1.5 Download File:
 2.Install dependencies:
    ```bash
    pip install -r requirements.txt
