@@ -53,6 +53,8 @@ Welcome to the **Neighborhood Reviews App**! This application allows users to ex
    git clone https://github.com/your-repo/neighborhood-reviews-app.git
    cd neighborhood-reviews-app
    ```
+   or
+1.5 Download File:
 2.Install dependencies:
    ```bash
    pip install -r requirements.txt
@@ -63,23 +65,6 @@ Welcome to the **Neighborhood Reviews App**! This application allows users to ex
    ```
 ---
 
-## 🌟 Future Enhancements
-- **User authentication**: Allow users to log in and manage their reviews.
-- **Image uploads**: Enable users to attach photos to their reviews.
-- **Advanced analytics**: Provide visual insights into neighborhood trends.
-- **Multi-language support**: Add translations for a global audience.
-
----
-
-## 🤝 Contributing
-Contributions are welcome! Feel free to fork the repository and submit a pull request. For major changes, please open an issue first to discuss what you would like to change.
-
----
-
-## 📜 License
-This project is licensed under the MIT License. See the `LICENSE` file for details.
-
----
 
 ## ❤️ Acknowledgments
 - **Streamlit** for the amazing framework.
