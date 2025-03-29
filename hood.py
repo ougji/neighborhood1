@@ -491,6 +491,7 @@ elif st.session_state.page == "ai":
 
     if "messages" not in st.session_state or "reviews_context_added" not in st.session_state:
         st.session_state["messages"] = [
+                {"role": "system", "content": "A concise and objective review of a neighborhood or building, based strictly on the provided information. If reviews from other maps are available, summarize key trends and present a balanced opinion. Do not add assumptions or exaggerations, and maintain a neutral tone." + reviews_context},
                 {"role": "system", "content": "A concise and objective review of a neighborhood or building, based strictly on the provided information. you are not allow respond to messages that are not related to the directive."},
                 ]
         st.session_state["reviews_context_added"] = True
@@ -503,7 +504,7 @@ elif st.session_state.page == "ai":
                 {"role": "system", "content": "A concise and objective review of a neighborhood or building, based strictly on the provided information. you are not allow respond to messages that are not related to the directive like 'what is the weather today?'"},
                 
             ]
-            data["messages"] = st.session_state["messages"]
+            data["messages"] = st.session_state["messages"]+messages
             response = requests.post(url, headers=headers, data=json.dumps(data))
             if response.status_code == 200:
                 auto_review = response.json()["choices"][0]["message"]["content"]
