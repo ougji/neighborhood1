@@ -221,6 +221,9 @@ if 'page' not in st.session_state:
 
 def set_page(page):
     st.session_state.page = page
+    st.rerun()
+#this function wasnt working well before now
+
 
 with st.sidebar:
     st.markdown("## Navigation")
@@ -241,7 +244,8 @@ if st.session_state.page == "create":
             col1, col2 = st.columns([2, 1])
             with col1:
                 neighborhood = st.text_input("🏙️ Neighborhood Name", placeholder="Enter neighborhood...")
-                review = st.text_area("📝 Your Review", placeholder="Share your experience...", height=150)
+                # Pre-fill the review field if auto_review exists
+                review = st.text_area("📝 Your Review", placeholder="Share your experience...", height=150, value=st.session_state.get("auto_review", ""))
             with col2:
                 st.markdown("### Ratings")
                 score = st.select_slider(
@@ -258,7 +262,7 @@ if st.session_state.page == "create":
                 )
             with st.container():
                 map_obj = folium.Map(location=[51.1175, 71.4617], zoom_start=12)
-                map_data = st_folium(map_obj, height=300 ,)
+                map_data = st_folium(map_obj, height=300)
             if map_data.get("last_clicked"):
                 lat, lon = map_data["last_clicked"]["lat"], map_data["last_clicked"]["lng"]
                 geolocator = Nominatim(user_agent="neighborhood_app")
@@ -478,30 +482,42 @@ elif st.session_state.page == "manage":
 # ai with access to database reviews.db
 elif st.session_state.page == "ai":
     st.markdown('<div class="section-header">AI Assistant</div>', unsafe_allow_html=True)
-    if "messages" not in st.session_state:
+
+    c.execute("SELECT Neighborhood, Review, Score, Security FROM reviews ORDER BY timestamp DESC LIMIT 50")
+    reviews_list = c.fetchall()
+    reviews_context = "\n".join([f"{r[0]}: {r[1]} (Score: {r[2]}, Security: {r[3]})" for r in reviews_list])
+
+    if "messages" not in st.session_state or "reviews_context_added" not in st.session_state:
         st.session_state["messages"] = [
-            {"role": "system", "content": "You are assistant that helps users with neighborhood reviews.Answer the questions and provide information based on the reviews in the database."}
+            {"role": "system", "content": f"You're a helpful assistant providing detailed neighborhood insights based on recent reviews. Answer user questions clearly, offer comparisons if relevant, and suggest additional factors they may want to consider. Here’s the latest review data: {reviews_context}"}
         ]
+        st.session_state["reviews_context_added"] = True
 
     if prompt := st.chat_input("Ask the AI about neighborhood reviews..."):
-        st.session_state["messages"].append(
-            {
-                "content": prompt,
-                "role": "user"
-            }
-        )
-        data["messages"] = st.session_state["messages"]
-        response = requests.post(url, headers=headers, data=json.dumps(data))
-        if response.status_code == 200:
-            assistant_message = response.json()["choices"][0]["message"]["content"]
-            st.session_state["messages"].append(
-                {
-                    "role": "assistant",
-                    "content": assistant_message
-                }
-            )
+        if prompt.startswith("/create"):    
+            review_directive = prompt[len("/create"):].strip()
+            messages = [
+                {"role": "system", "content": "A concise and objective review of a neighborhood or building, based strictly on the provided information. If reviews from other maps are available, summarize key trends and present a balanced opinion. Do not add assumptions or exaggerations, and maintain a neutral tone. " + review_directive},
+                {"role": "user", "content": "Generate a review based on the above directive."}
+            ]
+            data["messages"] = messages
+            response = requests.post(url, headers=headers, data=json.dumps(data))
+            if response.status_code == 200:
+                auto_review = response.json()["choices"][0]["message"]["content"]
+                st.session_state.auto_review = auto_review
+                st.success("AI generated a review. Switching to the create review tab. Please adjust the rating and select a location on the map.")
+                set_page("create")
+            else:
+                st.error("Failed to generate review from the AI model.")
         else:
-            st.error("Failed to fetch response from the API.")
+            st.session_state["messages"].append({"role": "user", "content": prompt})
+            data["messages"] = st.session_state["messages"]
+            response = requests.post(url, headers=headers, data=json.dumps(data))
+            if response.status_code == 200:
+                assistant_message = response.json()["choices"][0]["message"]["content"]
+                st.session_state["messages"].append({"role": "assistant", "content": assistant_message})
+            else:
+                st.error("Failed to fetch response from the API.")
 
     for message in st.session_state["messages"]:
         if message["role"] != "system":
