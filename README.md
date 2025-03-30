@@ -1,4 +1,8 @@
-![HoodAI Logo](hoodAI.png)
+<p align="center">
+  <img src="hoodAI.png" alt="Description" width="500">
+</p>
+
+
 # 🏙️ HoodAI - Your Smart Neighborhood Review Assistant
 
 Welcome to **HoodAI**, your intelligent assistant for exploring, reviewing, and managing neighborhood information. With HoodAI, you can share your experiences, analyze reviews, and even generate AI-powered insights about neighborhoods. 🌟
@@ -51,15 +55,15 @@ Welcome to **HoodAI**, your intelligent assistant for exploring, reviewing, and 
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/hoodai.git
-   cd hoodai
+   git clone https://github.com/ougji/neighborhood1.git
+   cd neighborhood1
    ```
 
 2. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-3. put config.tmol into .streamlit folder
+3. put config.toml into .streamlit folder
 
   
 4. Run the app:
