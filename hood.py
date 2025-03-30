@@ -7,8 +7,9 @@ from streamlit_folium import st_folium
 import sqlite3
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
+
+# ----- DATABASE SETUP -----
 GPT_API=""
-# ======== DATABASE SETUP ========
 conn = sqlite3.connect("reviews.db", check_same_thread=False)
 c = conn.cursor()
 c.execute(
@@ -33,12 +34,25 @@ try:
 except sqlite3.OperationalError:
     pass
 
-# ======== SITE STYLING ========
-st.set_page_config(layout="wide")
+st.set_page_config(page_title="HoodAI", page_icon="🏙️", layout="wide")
+
+st.markdown(
+    """
+    <style>
+    html, body, [data-testid="stAppViewContainer"] {
+        background-color: #09052B !important;
+        color: #FAFAFA !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
 st.markdown(
     """
     <div class="hero" style="text-align: center;">
-        <img src="https://img.atom.com/story_images/visual_images/1700657004-HoodAI1.png?class=show" alt="hoodAI Logo" style="max-width: 150px; margin-bottom: 1rem;">
+        <img src="https://img.atom.com/story_images/visual_images/1700657004-HoodAI1.png?class=show" alt="hoodAI Logo" style="max-width: 400px; margin-bottom: 1rem;">
         <p>Your smart neighborhood review assistant.</p>
     </div>
     
@@ -47,12 +61,11 @@ st.markdown(
     @import url('https://cdn.jsdelivr.net/npm/lucide-static@0.16.29/font/lucide.css');
     
     :root {
-        --primary: #7653ff;
-        --primary-dark: #4433bb;
-        --accent: #ec4899;
-        --background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        --glass: rgba(255, 255, 255, 0.95);
-        --text: #1e293b;
+        --primary: #8A2BE2;
+        --primary-dark: #5A189A;
+        --background: #09052B;
+        --secondary-background: #1E1A3D;
+        --text: #FAFAFA;
         --shadow: 0 24px 48px -12px rgba(0,0,0,0.1);
     }
     
@@ -74,7 +87,7 @@ st.markdown(
         padding: 1rem 2rem !important;
         border-radius: 20px !important;
         font-weight: bold !important;
-        box-shadow: 0px 5px 10px rgba(0,0,0,0.15);
+        box-shadow: 0px 5px 10px var(--shadow);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         position: relative;
         overflow: hidden;
@@ -95,43 +108,8 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-# ======== NAVIGATION STYLING ========
-st.markdown(
-    """
-    <style>
-    .nav-button {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-        padding: 0.75rem 1.5rem;
-        margin: 0.5rem 0;
-        width: 100%;
-        border: none;
-        border-radius: 12px;
-        background: rgba(99, 102, 241, 0.1);
-        color: var(--text);
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-    
-    .nav-button:hover {
-        background: rgba(99, 102, 241, 0.2);
-        transform: translateX(5px);
-    }
-    
-    .nav-button.active {
-        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        color: white !important;
-        box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
-    }
-    
-    .nav-button i {
-        font-size: 1.2rem;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+
+
 
 url = "https://api.openai.com/v1/chat/completions"
 headers = {
@@ -179,6 +157,7 @@ if st.session_state.page == "create":
             col1, col2 = st.columns([2, 1])
             with col1:
                 neighborhood = st.text_input("🏙️ Neighborhood Name", placeholder="Enter neighborhood...")
+                # Pre-fill the review field if auto_review exists
                 review = st.text_area("📝 Your Review", placeholder="Share your experience...", height=150, value=st.session_state.get("auto_review", ""))
             with col2:
                 st.markdown("### Ratings")
@@ -211,7 +190,6 @@ if st.session_state.page == "create":
                 st.warning("Please select a location on the map")
             if st.form_submit_button("🚀 Submit Review"):
                 if neighborhood and review and address:
-                    photo_bytes = photo.read() if photo else None
                     c.execute("INSERT INTO reviews (neighborhood, review, score, security, address) VALUES (?, ?, ?, ?, ?)",
                               (neighborhood, review, score, security, address))
                     conn.commit()
@@ -272,6 +250,7 @@ elif st.session_state.page == "read":
             """, unsafe_allow_html=True)
         else:
             for _, row in df_reviews.iterrows():
+                # Calculate stars based on a 5 point scale.
                 full_stars = int(round(row["Average"]))
                 stars = "★" * full_stars
                 empty_stars = "☆" * (5 - full_stars)
@@ -413,11 +392,10 @@ elif st.session_state.page == "manage":
             """,
             unsafe_allow_html=True
         )
+# ai with access to database reviews.db
 elif st.session_state.page == "ai":
     st.markdown('<div class="section-header">AI Assistant</div>', unsafe_allow_html=True)
-
     c.execute("SELECT Neighborhood, Review, Score, Security, Address FROM reviews ORDER BY timestamp DESC LIMIT 50")
-    # AI with access to database reviews.db
     reviews_list = c.fetchall()
     reviews_context = "\n".join([f"{r[0]}: {r[1]} (Score: {r[2]}, Security: {r[3]}, Address: {r[4]})" for r in reviews_list])
 
