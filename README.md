@@ -59,13 +59,15 @@ Welcome to **HoodAI**, your intelligent assistant for exploring, reviewing, and 
    ```bash
    pip install -r requirements.txt
    ```
+3. put config.tmol into .streamlit folder
 
-3. Run the app:
+  
+4. Run the app:
    ```bash
    streamlit run hood.py
    ```
 
-4. Open your browser and navigate to `http://localhost:XXXX`.
+5. Open your browser and navigate to `http://localhost:XXXX`.
 
 ---
 
@@ -91,6 +93,7 @@ Welcome to **HoodAI**, your intelligent assistant for exploring, reviewing, and 
 ├── hood.py               # Main application file
 ├── reviews.db            # SQLite database (auto-generated)
 ├── requirements.txt      # Python dependencies
+├── HoodAI.png            # HoodAI Logo
 └── README.md             # Project documentation
 ```
 ---
