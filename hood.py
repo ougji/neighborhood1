@@ -1,5 +1,5 @@
 import streamlit as st
-import requests  # Add this line
+import requests 
 import json 
 import pandas as pd
 import folium
@@ -39,6 +39,11 @@ except sqlite3.OperationalError:
 # ======== ENHANCED CSS ========
 st.markdown(
     """
+    <div class="hero" style="text-align: center;">
+        <img src="https://img.atom.com/story_images/visual_images/1700657004-HoodAI1.png?class=show" alt="hoodAI Logo" style="max-width: 150px; margin-bottom: 1rem;">
+        <p>Your smart neighborhood review assistant.</p>
+    </div>
+    
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     @import url('https://cdn.jsdelivr.net/npm/lucide-static@0.16.29/font/lucide.css');
@@ -94,17 +99,6 @@ st.markdown(
 )
 # ...existing code...
 
-# ======== HERO SECTION ========
-st.markdown(
-    """
-    <div class="hero">
-        <h1>Neighborhood Excellence</h1>
-        <p>Discover and share premium living experiences</p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
 # ======== NAVIGATION STYLING ========
 st.markdown(
     """
@@ -147,6 +141,7 @@ url = "https://api.openai.com/v1/chat/completions"
 headers = {
     "Content-Type": "application/json",
     "Authorization": "Bearer "
+}
 data = {
     "model": "gpt-4o-mini", 
     "messages": [
@@ -440,17 +435,16 @@ elif st.session_state.page == "ai":
 
     if "messages" not in st.session_state or "reviews_context_added" not in st.session_state:
         st.session_state["messages"] = [
-                {"role": "system", "content": "A concise and objective review of a neighborhood or building, based strictly on the provided information. If reviews from other maps are available, summarize key trends and present a balanced opinion. Do not add assumptions or exaggerations, and maintain a neutral tone." + reviews_context},
-                {"role": "system", "content": "A concise and objective review of a neighborhood or building, based strictly on the provided information. you are not allow respond to messages that are not related to the directive."},
-                ]
+            {"role": "system", "content": "A concise and objective review of a neighborhood , building,  home or apartments, based strictly on the provided information. If reviews from other maps are available, summarize key trends and present a balanced opinion. Do not add assumptions or exaggerations, and maintain a neutral tone." + reviews_context},
+            {"role": "system", "content": "You are not allowed respond to messages that are not related to the directive."},
+        ]
         st.session_state["reviews_context_added"] = True
 
     if prompt := st.chat_input("Ask the AI about neighborhood reviews..."):
         if prompt.startswith("/create"):    
             review_directive = prompt[len("/create"):].strip()
             messages = [
-                {"role": "system", "content": "A concise and objective review of a neighborhood or building, based strictly on the provided information. If reviews from other maps are available, summarize key trends and present a balanced opinion. Do not add assumptions or exaggerations, and maintain a neutral tone."},
-                {"role": "system", "content": "A concise and objective review of a neighborhood or building, based strictly on the provided information. You are not allowed to respond to messages that are not related to the directive like 'what is the weather today?'"},
+                {"role": "system", "content": "Create a review of a neighborhood , building or something else, based strictly on the provided information. Write the reviews like human, and from the first face , like you are reviewing the place . Do not add assumptions or exaggerations, and maintain a neutral tone." + review_directive}
             ]
             data["messages"] = messages
             response = requests.post(url, headers=headers, data=json.dumps(data))
