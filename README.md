@@ -91,10 +91,12 @@ Welcome to **HoodAI**, your intelligent assistant for exploring, reviewing, and 
 ```
 📁 hoodai
 ├── hood.py               # Main application file
+├── config.toml           # Website design
 ├── reviews.db            # SQLite database (auto-generated)
 ├── requirements.txt      # Python dependencies
 ├── HoodAI.png            # HoodAI Logo
 └── README.md             # Project documentation
+
 ```
 ---
 
