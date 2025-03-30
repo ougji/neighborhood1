@@ -105,61 +105,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ======== REVIEW CARD COMPONENT ========
-def luxury_review_card(review):
-    initials = "".join([name[0] for name in review[1].split()[:2]]).upper()
-    return f"""
-    <div class="glass-card">
-        <div class="review-header">
-            <div class="review-avatar">{initials}</div>
-            <div>
-                <h3 style="margin:0;color:var(--text)">{review[1]}</h3>
-                <div style="display:flex;gap:1rem;margin-top:0.5rem">
-                    <div style="display:flex;align-items:center;gap:0.25rem">
-                        <i class="lucide lucide-star" style="color:#fbbf24"></i>
-                        {review[3]}/5
-                    </div>
-                    <div style="display:flex;align-items:center;gap:0.25rem">
-                        <i class="lucide lucide-shield" style="color:#3b82f6"></i>
-                        {review[4]}/5
-                    </div>
-                </div>
-            </div>
-        </div>
-        <p style="color:var(--text);line-height:1.7">{review[2]}</p>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem">
-            <div style="display:flex;align-items:center;gap:0.5rem;color:var(--primary)">
-                <i class="lucide lucide-map-pin"></i>
-                {review[5]}
-            </div>
-            <small style="color:#64748b">{review[6]}</small>
-        </div>
-    </div>
-    """
-
-def display_review(review):
-    """Display review in a beautiful card format"""
-    st.markdown(f"""
-    <div class="review-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h3 style="margin: 0; color: var(--text);">{review[1]}</h3>
-            <div style="display: flex; gap: 1rem;">
-                <div class="rating-badge">
-                    ⭐ {review[3]}/5
-                </div>
-                <div class="rating-badge">
-                    🛡️ {review[4]}/5
-                </div>
-            </div>
-        </div>
-        <p style="color: #555; line-height: 1.7; margin-bottom: 1rem;">{review[2]}</p>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="color: var(--primary); font-weight: 500;">📍 {review[5]}</div>
-            <small style="color: #888;">{review[6]}</small>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
 # ======== NAVIGATION STYLING ========
 st.markdown(
     """
@@ -201,16 +146,14 @@ st.markdown(
 url = "https://api.openai.com/v1/chat/completions"
 headers = {
     "Content-Type": "application/json",
-    "Authorization": "Bearer"
-}
+    "Authorization": "Bearer "
 data = {
     "model": "gpt-4o-mini", 
     "messages": [
-       {"role": "system", "content": " you are not allow respond to messages that are not related to the directive like 'what is the weather today?'"},
-                 
+        {"role": "system", "content": "You are assistant that helps users with neighborhood reviews.Answer the questions and provide information based on the reviews in the database."},
     ],
     "max_tokens": 6000,
-    "temperature": 1,
+    "temperature": 0.7,
     "top_p": 1.0,
     "frequency_penalty": 0.0,
     "presence_penalty": 0.0
@@ -223,7 +166,7 @@ if 'page' not in st.session_state:
 def set_page(page):
     st.session_state.page = page
     st.rerun()
-#this function wasnt working well before now
+
 
 
 with st.sidebar:
@@ -234,9 +177,8 @@ with st.sidebar:
         set_page("create")
     if st.button("🛠️ Manage Reviews", key="manage"):
         set_page("manage")
-    if st.button("AI Assistant", key="ai"):
+    if st.button("🤖 AI Assistant", key="ai"):
         set_page("ai")
-
 
 # ======== MAIN APP CODE ========
 
@@ -248,6 +190,8 @@ if st.session_state.page == "create":
                 neighborhood = st.text_input("🏙️ Neighborhood Name", placeholder="Enter neighborhood...")
                 # Pre-fill the review field if auto_review exists
                 review = st.text_area("📝 Your Review", placeholder="Share your experience...", height=150, value=st.session_state.get("auto_review", ""))
+                # New file uploader for photos
+                photo = st.file_uploader("📸 Upload Photo", type=["png", "jpg", "jpeg"])
             with col2:
                 st.markdown("### Ratings")
                 score = st.select_slider(
@@ -264,7 +208,7 @@ if st.session_state.page == "create":
                 )
             with st.container():
                 map_obj = folium.Map(location=[51.1175, 71.4617], zoom_start=12)
-                map_data = st_folium(map_obj, height=300)
+                map_data = st_folium(map_obj, height=500 , width=1000)
             if map_data.get("last_clicked"):
                 lat, lon = map_data["last_clicked"]["lat"], map_data["last_clicked"]["lng"]
                 geolocator = Nominatim(user_agent="neighborhood_app")
@@ -279,6 +223,10 @@ if st.session_state.page == "create":
                 st.warning("Please select a location on the map")
             if st.form_submit_button("🚀 Submit Review"):
                 if neighborhood and review and address:
+                    # Optionally, save the uploaded photo bytes (or path) along with the review
+                    photo_bytes = photo.read() if photo else None
+                    # For demonstration, we just store photo_bytes in a variable.
+                    # In a real app you might want to store this file on disk or in a database.
                     c.execute("INSERT INTO reviews (neighborhood, review, score, security, address) VALUES (?, ?, ?, ?, ?)",
                               (neighborhood, review, score, security, address))
                     conn.commit()
@@ -391,7 +339,7 @@ elif st.session_state.page == "read":
                 else:
                     continue
  
-                color = "#e74c3c" if avg < 4 else "#f39c12" if avg < 7 else "#2ecc71"
+                color = "#e74c3c" if avg < 2 else "#f39c12" if avg < 3.5 else "#2ecc71"
  
                 icon_html = f"""
                     <div style="
@@ -485,9 +433,10 @@ elif st.session_state.page == "manage":
 elif st.session_state.page == "ai":
     st.markdown('<div class="section-header">AI Assistant</div>', unsafe_allow_html=True)
 
-    c.execute("SELECT Neighborhood, Review, Score, Security FROM reviews ORDER BY timestamp DESC LIMIT 50")
+    # In the AI Assistant branch:
+    c.execute("SELECT Neighborhood, Review, Score, Security, Address FROM reviews ORDER BY timestamp DESC LIMIT 50")
     reviews_list = c.fetchall()
-    reviews_context = "\n".join([f"{r[0]}: {r[1]} (Score: {r[2]}, Security: {r[3]})" for r in reviews_list])
+    reviews_context = "\n".join([f"{r[0]}: {r[1]} (Score: {r[2]}, Security: {r[3]}, Address: {r[4]})" for r in reviews_list])
 
     if "messages" not in st.session_state or "reviews_context_added" not in st.session_state:
         st.session_state["messages"] = [
@@ -500,11 +449,10 @@ elif st.session_state.page == "ai":
         if prompt.startswith("/create"):    
             review_directive = prompt[len("/create"):].strip()
             messages = [
-                {"role": "system", "content": "A concise and objective review of a neighborhood or building, based strictly on the provided information. If reviews from other maps are available, summarize key trends and present a balanced opinion. Do not add assumptions or exaggerations, and maintain a neutral tone. " + review_directive},
-                {"role": "system", "content": "A concise and objective review of a neighborhood or building, based strictly on the provided information. you are not allow respond to messages that are not related to the directive like 'what is the weather today?'"},
-                
+                {"role": "system", "content": "A concise and objective review of a neighborhood or building, based strictly on the provided information. If reviews from other maps are available, summarize key trends and present a balanced opinion. Do not add assumptions or exaggerations, and maintain a neutral tone."},
+                {"role": "system", "content": "A concise and objective review of a neighborhood or building, based strictly on the provided information. You are not allowed to respond to messages that are not related to the directive like 'what is the weather today?'"},
             ]
-            data["messages"] = st.session_state["messages"]+messages
+            data["messages"] = messages
             response = requests.post(url, headers=headers, data=json.dumps(data))
             if response.status_code == 200:
                 auto_review = response.json()["choices"][0]["message"]["content"]
@@ -527,4 +475,3 @@ elif st.session_state.page == "ai":
         if message["role"] != "system":
             with st.chat_message(message["role"]):
                 st.write(message["content"])
-
