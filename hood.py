@@ -7,8 +7,8 @@ from streamlit_folium import st_folium
 import sqlite3
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
-
-# ----- DATABASE SETUP -----
+GPT_API=""
+# ======== DATABASE SETUP ========
 conn = sqlite3.connect("reviews.db", check_same_thread=False)
 c = conn.cursor()
 c.execute(
@@ -26,17 +26,15 @@ c.execute(
 )
 conn.commit()
 
-# Ensure the timestamp column exists (for older versions of the table)
+# Ensure the timestamp column exists
 try:
     c.execute("ALTER TABLE reviews ADD COLUMN timestamp DATETIME DEFAULT CURRENT_TIMESTAMP")
     conn.commit()
 except sqlite3.OperationalError:
-    # Column 'timestamp' likely already exists
     pass
 
-# ======== ENHANCED CSS ========
-# ...existing code...
-# ======== ENHANCED CSS ========
+# ======== SITE STYLING ========
+st.set_page_config(layout="wide")
 st.markdown(
     """
     <div class="hero" style="text-align: center;">
@@ -97,8 +95,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-# ...existing code...
-
 # ======== NAVIGATION STYLING ========
 st.markdown(
     """
@@ -140,7 +136,7 @@ st.markdown(
 url = "https://api.openai.com/v1/chat/completions"
 headers = {
     "Content-Type": "application/json",
-    "Authorization": "Bearer sk-proj-oSfN_JmT7QJ3NQRR12212312312312312312312312ePKlMoQe4wusq1O6jXTKocBL32sIOkBXoygd899MvJhvJ4TMJpWA1CmbRXxaSUT3B332lbkFJi4JGIKJ6rEQqljj1LO3RGrSp4BPaDKYvlxXcYXHsVSKWhXBA1HeJUloDGClPMCUqS7LuCkYKwA"
+    "Authorization": f"Bearer {GPT_API}"
 }
 data = {
     "model": "gpt-4o-mini", 
@@ -183,7 +179,6 @@ if st.session_state.page == "create":
             col1, col2 = st.columns([2, 1])
             with col1:
                 neighborhood = st.text_input("🏙️ Neighborhood Name", placeholder="Enter neighborhood...")
-                # Pre-fill the review field if auto_review exists
                 review = st.text_area("📝 Your Review", placeholder="Share your experience...", height=150, value=st.session_state.get("auto_review", ""))
             with col2:
                 st.markdown("### Ratings")
@@ -216,10 +211,7 @@ if st.session_state.page == "create":
                 st.warning("Please select a location on the map")
             if st.form_submit_button("🚀 Submit Review"):
                 if neighborhood and review and address:
-                    # Optionally, save the uploaded photo bytes (or path) along with the review
                     photo_bytes = photo.read() if photo else None
-                    # For demonstration, we just store photo_bytes in a variable.
-                    # In a real app you might want to store this file on disk or in a database.
                     c.execute("INSERT INTO reviews (neighborhood, review, score, security, address) VALUES (?, ?, ?, ?, ?)",
                               (neighborhood, review, score, security, address))
                     conn.commit()
@@ -280,7 +272,6 @@ elif st.session_state.page == "read":
             """, unsafe_allow_html=True)
         else:
             for _, row in df_reviews.iterrows():
-                # Calculate stars based on a 5 point scale.
                 full_stars = int(round(row["Average"]))
                 stars = "★" * full_stars
                 empty_stars = "☆" * (5 - full_stars)
@@ -422,12 +413,11 @@ elif st.session_state.page == "manage":
             """,
             unsafe_allow_html=True
         )
-# ai with access to database reviews.db
 elif st.session_state.page == "ai":
     st.markdown('<div class="section-header">AI Assistant</div>', unsafe_allow_html=True)
 
-    # In the AI Assistant branch:
     c.execute("SELECT Neighborhood, Review, Score, Security, Address FROM reviews ORDER BY timestamp DESC LIMIT 50")
+    # AI with access to database reviews.db
     reviews_list = c.fetchall()
     reviews_context = "\n".join([f"{r[0]}: {r[1]} (Score: {r[2]}, Security: {r[3]}, Address: {r[4]})" for r in reviews_list])
 
