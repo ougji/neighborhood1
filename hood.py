@@ -9,7 +9,6 @@ from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
 
 # ----- DATABASE SETUP -----
-GPT_API=""
 conn = sqlite3.connect("reviews.db", check_same_thread=False)
 c = conn.cursor()
 c.execute(
@@ -27,12 +26,17 @@ c.execute(
 )
 conn.commit()
 
-# Ensure the timestamp column exists
+# Ensure the timestamp column exists (for older versions of the table)
 try:
     c.execute("ALTER TABLE reviews ADD COLUMN timestamp DATETIME DEFAULT CURRENT_TIMESTAMP")
     conn.commit()
 except sqlite3.OperationalError:
+    # Column 'timestamp' likely already exists
     pass
+
+# ======== ENHANCED CSS ========
+# ...existing code...
+# ======== ENHANCED CSS ========
 
 st.set_page_config(page_title="HoodAI", page_icon="🏙️", layout="wide")
 
@@ -52,7 +56,7 @@ st.markdown(
 st.markdown(
     """
     <div class="hero" style="text-align: center;">
-        <img src="https://img.atom.com/story_images/visual_images/1700657004-HoodAI1.png?class=show" alt="hoodAI Logo" style="max-width: 400px; margin-bottom: 1rem;">
+        <img src="https://img.atom.com/story_images/visual_images/1700657004-HoodAI1.png?class=show" alt="hoodAI Logo" style="max-width: 150px; margin-bottom: 1rem;">
         <p>Your smart neighborhood review assistant.</p>
     </div>
     
@@ -114,7 +118,7 @@ st.markdown(
 url = "https://api.openai.com/v1/chat/completions"
 headers = {
     "Content-Type": "application/json",
-    "Authorization": f"Bearer {GPT_API}"
+    "Authorization": "Bearer skT3BlbkFJi4JGIKJ6rEQqljj1LO3RGrSpYKwA"
 }
 data = {
     "model": "gpt-4o-mini", 
@@ -395,25 +399,28 @@ elif st.session_state.page == "manage":
 # ai with access to database reviews.db
 elif st.session_state.page == "ai":
     st.markdown('<div class="section-header">AI Assistant</div>', unsafe_allow_html=True)
+
+    # In the AI Assistant branch:
     c.execute("SELECT Neighborhood, Review, Score, Security, Address FROM reviews ORDER BY timestamp DESC LIMIT 50")
     reviews_list = c.fetchall()
     reviews_context = "\n".join([f"{r[0]}: {r[1]} (Score: {r[2]}, Security: {r[3]}, Address: {r[4]})" for r in reviews_list])
 
+
     if "messages" not in st.session_state or "reviews_context_added" not in st.session_state:
         st.session_state["messages"] = [
-            {"role": "system", "content": "You are HoodAI, an assistant specialized in providing concise and objective reviews of neighborhoods or buildings and creating reviews by /create command. Your responses should be based strictly on the provided information and reviews. Summarize key trends, present a balanced opinion, and maintain a neutral tone. Do not add assumptions, exaggerations, or unrelated information. Here are the latest reviews:\n" + reviews_context},
-            {"role": "system", "content": "If the user requests the /create command, provide a corrected and concise review based on the provided input. Ensure the response is formatted as a complete review, without adding comments or unrelated information."},
+            {"role": "system", "content": f"You're a helpful assistant providing detailed neighborhood insights based on recent reviews. Answer user questions clearly, offer comparisons if relevant, and suggest additional factors they may want to consider. Here’s the latest review data: {reviews_context}"},
             {"role": "system", "content": "You are not allowed to respond to messages that are not related to neighborhood reviews or correcting reviews."},
             {"role": "assistant", "content": "Hello! I am HoodAI, your assistant for neighborhood reviews. If you need help, use the /create command to start generating a review."},
         ]
         st.session_state["reviews_context_added"] = True
 
 
+
     if prompt := st.chat_input("Ask the AI about neighborhood reviews..."):
         if prompt.startswith("/create"):    
             review_directive = prompt[len("/create"):].strip()
             messages = [
-                {"role": "system", "content": "Create a short review of a neighborhood , building or place, based strictly on the provided information. Write the reviews like human, and from the first face , like you are reviewing the place . Do not add assumptions or exaggerations, and maintain a neutral tone." + review_directive}
+                {"role": "system", "content": "Create a short and readable review of a neighborhood , building or place, based strictly on the provided information. Write the reviews like human, and from the first face , like you are reviewing the place . Do not add assumptions or exaggerations, and maintain a neutral tone." + review_directive}
             ]
             data["messages"] = messages
             response = requests.post(url, headers=headers, data=json.dumps(data))
