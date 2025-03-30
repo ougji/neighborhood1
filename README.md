@@ -1,6 +1,7 @@
-# 🏙️ Neighborhood Reviews App
+![HoodAI Logo](hoodAI.png)
+# 🏙️ HoodAI - Your Smart Neighborhood Review Assistant
 
-Welcome to the **Neighborhood Reviews App**! This application allows users to explore, review, and manage information about neighborhoods. It also integrates an AI assistant to help generate reviews and provide insights. 🌟
+Welcome to **HoodAI**, your intelligent assistant for exploring, reviewing, and managing neighborhood information. With HoodAI, you can share your experiences, analyze reviews, and even generate AI-powered insights about neighborhoods. 🌟
 
 ---
 
@@ -23,10 +24,10 @@ Welcome to the **Neighborhood Reviews App**! This application allows users to ex
 - Edit or delete your previously submitted reviews.
 - Keep your reviews up-to-date with ease.
 
-### 🤖 **AI Assistant**
-- Ask the AI assistant for insights about neighborhoods.
+### 🤖 **HoodAI Assistant**
+- Ask HoodAI for insights about neighborhoods.
 - Generate concise and objective reviews using AI.
-- AI ensures neutrality and avoids unrelated responses.
+- HoodAI ensures neutrality and avoids unrelated responses.
 
 ### 🎨 **Enhanced User Interface**
 - Beautiful, responsive design with **custom CSS styling**.
@@ -48,29 +49,63 @@ Welcome to the **Neighborhood Reviews App**! This application allows users to ex
   - `geopy`
 
 ### Installation
-1. Clone the repository or Download ZIP file:
+1. Clone the repository:
    ```bash
-   git clone https://github.com/ougji/neighborhood1.git
-   cd neighborhood1
+   git clone https://github.com/your-repo/hoodai.git
+   cd hoodai
    ```
-2.Install dependencies:
+
+2. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-3.Run the app:
+
+3. Run the app:
    ```bash
    streamlit run hood.py
    ```
+
+4. Open your browser and navigate to `http://localhost:XXXX`.
+
 ---
 
+## 🛠️ Configuration
+
+### Database
+- The app uses an SQLite database (`reviews.db`) to store reviews.
+- The database is automatically created and initialized when the app runs for the first time.
+
+### OpenAI API
+- HoodAI integrates with OpenAI's API for AI-generated reviews.
+- Add your OpenAI API key in the `hood.py` file:
+  ```python
+  GPT_API="YOUR_API_KEY"
+  ```
+
+---
+
+## 📂 Project Structure
+
+```
+📁 hoodai
+├── hood.py               # Main application file
+├── reviews.db            # SQLite database (auto-generated)
+├── requirements.txt      # Python dependencies
+└── README.md             # Project documentation
+```
+---
+
+## 📜 License
+This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+---
 
 ## ❤️ Acknowledgments
 - **Streamlit** for the amazing framework.
 - **Folium** for interactive map visualizations.
-- **OpenAI** for the AI-powered assistant.
-
+- **OpenAI** for powering HoodAI's intelligent assistant.
+- **Infomatrix** for inspiring innovation and competition. 
 ---
 
-Enjoy exploring and sharing your neighborhood experiences! 🌟
-
-
+Enjoy exploring and sharing your neighborhood experiences with **HoodAI**! 🌟
+```
