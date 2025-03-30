@@ -1,5 +1,5 @@
 import streamlit as st
-import requests 
+import requests  # Add this line
 import json 
 import pandas as pd
 import folium
@@ -140,7 +140,7 @@ st.markdown(
 url = "https://api.openai.com/v1/chat/completions"
 headers = {
     "Content-Type": "application/json",
-    "Authorization": "Bearer "
+    "Authorization": "Bearer sk-proj-oSfN_JmT7QJ3NQRR12212312312312312312312312ePKlMoQe4wusq1O6jXTKocBL32sIOkBXoygd899MvJhvJ4TMJpWA1CmbRXxaSUT3B332lbkFJi4JGIKJ6rEQqljj1LO3RGrSp4BPaDKYvlxXcYXHsVSKWhXBA1HeJUloDGClPMCUqS7LuCkYKwA"
 }
 data = {
     "model": "gpt-4o-mini", 
@@ -185,8 +185,6 @@ if st.session_state.page == "create":
                 neighborhood = st.text_input("🏙️ Neighborhood Name", placeholder="Enter neighborhood...")
                 # Pre-fill the review field if auto_review exists
                 review = st.text_area("📝 Your Review", placeholder="Share your experience...", height=150, value=st.session_state.get("auto_review", ""))
-                # New file uploader for photos
-                photo = st.file_uploader("📸 Upload Photo", type=["png", "jpg", "jpeg"])
             with col2:
                 st.markdown("### Ratings")
                 score = st.select_slider(
@@ -435,16 +433,19 @@ elif st.session_state.page == "ai":
 
     if "messages" not in st.session_state or "reviews_context_added" not in st.session_state:
         st.session_state["messages"] = [
-            {"role": "system", "content": "A concise and objective review of a neighborhood , building,  home or apartments, based strictly on the provided information. If reviews from other maps are available, summarize key trends and present a balanced opinion. Do not add assumptions or exaggerations, and maintain a neutral tone." + reviews_context},
-            {"role": "system", "content": "You are not allowed respond to messages that are not related to the directive."},
+            {"role": "system", "content": "You are HoodAI, an assistant specialized in providing concise and objective reviews of neighborhoods or buildings and creating reviews by /create command. Your responses should be based strictly on the provided information and reviews. Summarize key trends, present a balanced opinion, and maintain a neutral tone. Do not add assumptions, exaggerations, or unrelated information. Here are the latest reviews:\n" + reviews_context},
+            {"role": "system", "content": "If the user requests the /create command, provide a corrected and concise review based on the provided input. Ensure the response is formatted as a complete review, without adding comments or unrelated information."},
+            {"role": "system", "content": "You are not allowed to respond to messages that are not related to neighborhood reviews or correcting reviews."},
+            {"role": "assistant", "content": "Hello! I am HoodAI, your assistant for neighborhood reviews. If you need help, use the /create command to start generating a review."},
         ]
         st.session_state["reviews_context_added"] = True
+
 
     if prompt := st.chat_input("Ask the AI about neighborhood reviews..."):
         if prompt.startswith("/create"):    
             review_directive = prompt[len("/create"):].strip()
             messages = [
-                {"role": "system", "content": "Create a review of a neighborhood , building or something else, based strictly on the provided information. Write the reviews like human, and from the first face , like you are reviewing the place . Do not add assumptions or exaggerations, and maintain a neutral tone." + review_directive}
+                {"role": "system", "content": "Create a short review of a neighborhood , building or place, based strictly on the provided information. Write the reviews like human, and from the first face , like you are reviewing the place . Do not add assumptions or exaggerations, and maintain a neutral tone." + review_directive}
             ]
             data["messages"] = messages
             response = requests.post(url, headers=headers, data=json.dumps(data))
